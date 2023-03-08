@@ -8,7 +8,6 @@ from tRow import TableRow
 ---------------------------------------------[ class Table ]------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------"""
 
-
 class Table:  # Table
     """
     Объекты класса Table формируются из подтаблиц (chunks). Потаблицы объединяются поколоночно, слева направо:
@@ -29,7 +28,7 @@ class Table:  # Table
                         'columns': 0, = число столбцов. Может использоваться для сокращения или расширения числа столбцв
                         'rows': 0} = число строк data_table
     """
-    index = 0
+    _index = 0
     chunk_list = []
     columns = 0
     rows = 0
@@ -93,7 +92,7 @@ class Table:  # Table
         hdkeys: Если True: то для таблиц со строками-словарями, заголовки будут браться из ключей словарей. Иначе - значений
         filler : заполнитель ячеек, у которых нет значений. Например, при расширении таблицы до заданного columns.
         """
-        self.index = 0
+        self._index = 0
         self.chunk_list = []
         self.columns = 0
         self.rows = 0
@@ -341,13 +340,13 @@ class Table:  # Table
                              f"{inspect_info()}")
 
     def __iter__(self):  # Table
-        self.index = 0
+        self._index = 0
         return self
 
     def __next__(self):  # Table
-        if self.index >= self.rows:
+        if self._index >= self.rows:
             raise StopIteration()
         else:
-            self.index += 1
-            return TableRow(self, self.index-1)
+            self._index += 1
+            return TableRow(self, self._index - 1)
 

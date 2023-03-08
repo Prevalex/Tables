@@ -66,6 +66,14 @@ def tg(size):
     return list_array, tuple_array, dict_array
 
 
+def eval_index(index, size):
+    if index < 0:
+        index += size
+    if 0 <= index < size:
+        return index
+    else:
+        return -1
+
 def arrange_with_titles(src_dic: dict, key_list: list) -> dict:
     """
     Перестраивает словарь таким образом, что бы порядок следования пар ключ-значение соответствовал порядку в key_list.
