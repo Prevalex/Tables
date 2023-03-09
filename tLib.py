@@ -1,6 +1,6 @@
 import xlrd
 from openpyxl import load_workbook
-from alx import inspect_info
+from alx import inspect_info, dbg
 
 
 class TableError(Exception):
@@ -66,13 +66,36 @@ def tg(size):
     return list_array, tuple_array, dict_array
 
 
-def eval_index(index, size):
-    if index < 0:
-        index += size
-    if 0 <= index < size:
-        return index
+def eval_index(index, size, slicer=None):
+    """
+    Вычисляет правильный индекс и проверяет его вхождение в пределы size.
+
+    Parameters
+    ----------
+    index : Индекс для проверки
+    size : Размер массива, который индексируется
+    slicer : Список строк, которые сотались после предыдущего слайсинга [start, stop, step]
+
+    Returns
+    -------
+    Скорректированный Индекс в массиве или -1, если индекс вышел за пределы списка
+
+    """
+    if slicer is None:
+        if index < 0:
+            index += size
+        if 0 <= index < size:
+            ret = index
+        else:
+            ret = -1
     else:
-        return -1
+        i = eval_index(index, len(slicer))
+        if i >= 0:
+            ret = slicer[i]
+        else:
+            ret = i
+    return ret
+
 
 def arrange_with_titles(src_dic: dict, key_list: list) -> dict:
     """

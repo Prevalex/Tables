@@ -9,8 +9,9 @@ class TableChunk:
     selector = None
     columns = None
     headers = None
-    keys_are_headers = None
+    head_keys = None
     filler = None
+    slicer: list = None
 
     """ variables to be defined later """
     types = None
@@ -29,12 +30,35 @@ class TableChunk:
         about, _l = add_str(about, '{:<17} {:<17}'.format('Headers:', f"{repr(self.headers)}"))
         about, _l = add_str(about, '{:<17} {:<17}'.format('MiniMax:', f"{repr(self.minimax)}"))
         about, _l = add_str(about, '{:<17} {:<17}'.format('Filler:', f"{repr(self.filler)}"))
-        about, _l = add_str(about, '{:<17} {:<17}'.format('keys_are_headers:', f"{repr(self.keys_are_headers)}"),
+        about, _l = add_str(about, '{:<17} {:<17}'.format('Slicer:', f"{repr(self.slicer)}"))
+        about, _l = add_str(about, '{:<17} {:<17}'.format('head_keys:', f"{repr(self.head_keys)}"),
                             endstr=True)
         return about
 
-    def __init__(self, array: str | list | tuple, selector=None, columns=None, headers=None, keys_are_headers=True, 
-                 filler=None):
+    def __init__(self,
+                 array: str | list | tuple,
+                 selector: list | tuple | None = None,
+                 columns: int | None = None,
+                 headers: list | tuple | dict | int | None = None,
+                 head_keys: bool = True,
+                 filler: any = None,
+                 slicer: list | None = None):
+        """
+
+        Parameters
+        ----------
+        array : массив табличных данных: list|tuple[list|tuple|dict]
+        selector : перечень ключей, по которым будет сделана выборка столбцов, если строки это dict; или: перечень
+        индексов, если строки - это list или tuple
+        columns : число, по которому будет выравниваться число столбцов (добавляться справа или сокращаться справа).
+        При добавлении - используется значение, заданное filler
+        headers : список/кортеж/словарь заголовков столбцов или указатель на строку array, которая их содержит
+        (list, tuple, или dict.values)
+        head_keys : если True _и_ указан headers _и_ (строки dict _или_ тип headers=dict), то для выборки заголовков
+        используется не dict.values() а dict.keys()
+        filler :
+        slicer :
+        """
 
         """ iteration index """
         self._index = 0
@@ -44,14 +68,15 @@ class TableChunk:
         self.selector = selector
         self.columns = columns
         self.headers = headers
-        self.keys_are_headers = keys_are_headers
+        self.head_keys = head_keys
         self.filler = filler
+        self.slicer = slicer
 
         """ variables to be defined later """
         self.types = None
         self.minimax = None
         self.rows = None
-        
+
         """ Если array имеет тип str, то считаем, что передано имя json или csv файла, которые 
             должны существовать и иметь соответствующие расширения .csv или .json.
             Если все так - загружаем содержимое файла в память"""
@@ -123,7 +148,7 @@ class TableChunk:
         self._take_selector(selector)
 
         # 'header'
-        self._take_headers(headers, keys_are_headers=keys_are_headers)
+        self._take_headers(headers, head_keys=head_keys)
 
         if self.selector:
             if self.headers:
@@ -132,40 +157,61 @@ class TableChunk:
             else:
                 self.headers = self.selector.copy()
 
+    def __len__(self):
+        if self.slicer is None:
+            return self.rows
+        else:
+            return len(self.slicer)
+
     def __iter__(self):  # Table
         self._index = 0
         return self
 
     def __next__(self):  # Table
-        if self._index >= self.rows:
+        if self.slicer is None:
+            size = self.rows
+        else:
+            size = len(self.slicer)
+
+        if self._index >= size:
             raise StopIteration()
         else:
+            i = eval_index(self._index, self.rows, slicer=self.slicer)
+            ret = self.__getitem__(i)
             self._index += 1
-            return self.__getitem__(self._index - 1)
+            return ret
 
-    def __getitem__(self, subscript: int | slice) -> list:  # TableRow
+    def __getitem__(self, subscript: int | slice):
         if isinstance(subscript, int):
+            i = eval_index(subscript, self.rows, self.slicer)
             return self._get_row(subscript)
         elif isinstance(subscript, slice):
-            chunk_slice = []
-            chunk_indxs = []
-            start = subscript.start
-            stop = subscript.stop
-            step = subscript.step
-
-            for
-
-
+            slicer = self.slicer
+            if slicer is None:
+                slicer = list(range(self.rows))
+            slicer = slicer[subscript]
+            sliced_chunk = TableChunk(self.array,
+                                      selector=self.selector,
+                                      columns=self.columns,
+                                      headers=self.headers,
+                                      head_keys=self.head_keys,
+                                      filler=self.filler,
+                                      slicer=slicer
+                                      )
+            return sliced_chunk
 
     def _get_row(self, row_index):
         chunk_row = []
-        if isinstance(row_index, int):
+        if not isinstance(row_index, int):
+            raise TableError(f"{class_name(self)}: Индекс строки row_index должен иметь тип int.\n"
+                             f"Получен: {type(row_index)}.\n"
+                             f"{inspect_info()}")
+        else:
             row_index = eval_index(row_index, self.rows)
             if row_index < 0:
                 raise TableError(f"{class_name(self)}: Строка с номером {row_index + self.rows} не существует.\n"
                                  f"{inspect_info()}")
-
-            if row_index < self.rows:  # строка в пределах этой подтаблицы
+            else:  # строка в пределах этой подтаблицы
                 if self.types == dict:  # таблица словарей
                     if not self.selector:  # селектор пуст
                         chunk_row = list(self.array[row_index].values())
@@ -208,6 +254,7 @@ class TableChunk:
             _lst = list()
         elif isinstance(selector, list) or isinstance(selector, tuple):
             _lst = list(selector)
+            self.columns = len(_lst)
         else:
             raise TableError(f'{class_name(self)}: Селектор должен быть списком или кортежем.'
                              f'Получено: {type(selector)}\n'
@@ -225,7 +272,7 @@ class TableChunk:
                         f'иметь тип int. Получен: type({i})={type(i)}')
         self.selector = _lst
 
-    def _take_headers(self, hdr: int | list | None, keys_are_headers=True) -> None:  # Table
+    def _take_headers(self, hdr: int | list | tuple | dict | None, head_keys=True) -> None:  # Table
         """
         Устанавливает список заголовков, которые заданы списком/кортежем/словарем либо ссылкой на строку data_table,
          из которой они извлекаются. Если задан словарем или ссылкой на словарь(-строку) то извлекаются как
@@ -248,7 +295,7 @@ class TableChunk:
             hdr_row_index = eval_index(hdr, self.rows)
             if hdr_row_index >= 0:
                 if self.types == dict:
-                    if keys_are_headers:
+                    if head_keys:
                         _lst = [title for title in self.array[hdr_row_index].keys()]
                     else:
                         _lst = [title for title in self.array[hdr_row_index].values()]
@@ -264,7 +311,7 @@ class TableChunk:
 
             """ -> задан словарь """
         elif isinstance(hdr, dict):
-            if keys_are_headers:
+            if head_keys:
                 _lst = [header for header in hdr.keys()]
             else:
                 _lst = [header for header in hdr.values()]
