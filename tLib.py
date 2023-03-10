@@ -1,4 +1,6 @@
 import xlrd
+from time import time
+
 from openpyxl import load_workbook
 from alx import inspect_info, dbg
 
@@ -97,7 +99,58 @@ def eval_index(index, size, slicer=None):
     return ret
 
 
-def arrange_with_titles(src_dic: dict, key_list: list) -> dict:
+def get_test_indexes(total_rows) -> list:
+    if total_rows < 9:
+        _rows = set(list(range(total_rows)))
+    else:
+        _start = {0, 1, 2}
+        _middle = int(round(total_rows / 2, 0))
+        _middle = {_middle - 1, _middle, _middle + 1}
+        _finish = {total_rows - 1, total_rows - 2, total_rows - 3}
+        _rows = _start | _middle | _finish
+    return list(_rows)
+
+
+def test_keys(dic_array):
+    key_array = []
+    for row_index in get_test_indexes(len(dic_array)):
+        key_array.append(list(dic_array[row_index].keys()))
+    return all([set(row) == set(key_array[0]) for row in key_array])
+
+
+def lapse(func):
+    """
+    Декоратор для замера времени выполнения функции в секундах
+    https://sumit-ghosh.com/posts/demystifying-decorators-python/
+
+    Parameters
+    ----------
+    func : функция, время исполнения которой замеряется
+
+    Returns
+    -------
+    """
+    def wrapper(*args, **kwargs):
+        start = time()
+        return_value = func(*args, **kwargs)
+        end = time()
+        print(f'[*] Время выполнения: {round(end-start,3)} секунд.')
+        return return_value
+    return wrapper
+
+
+def get_array_keys(dic_array):
+    key_array = []
+    key_list = list(dic_array[0].keys())
+    for row_dic in dic_array:
+        key_array.append(list(row_dic.keys()))
+    if all([set(row) == set(key_list) for row in key_array]):
+        return key_list
+    else:
+        return []
+
+
+def reorder_dict(src_dic: dict, key_list: list) -> dict:
     """
     Перестраивает словарь таким образом, что бы порядок следования пар ключ-значение соответствовал порядку в key_list.
     Использует тот факт, что в современно питоне (>3.7) словари таки сохраняют упорядоченность

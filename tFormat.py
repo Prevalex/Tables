@@ -6,7 +6,7 @@ import openpyxl.worksheet.worksheet
 from openpyxl.cell import WriteOnlyCell
 from openpyxl.utils import get_column_letter
 
-from alx import add_str, class_name, _q, inspect_info
+from alx import add_str, class_name, quote, inspect_info
 from tLib import TableError, xl_cell_type_gen, xl_cell_type_int, xl_cell_type_text, xl_cell_type_float, \
     xl_cell_style_simple, excel_default_style, excel_default_type
 
@@ -216,20 +216,20 @@ class Formatter:  # Formatter
         about, _l = add_str(about, '{:<17}'.format('-' * _l))
 
         for col_key, col_dic in self.col_formatter.items():
-            about, _l = add_str(about, ' {}:'.format(_q(col_key)))
+            about, _l = add_str(about, ' {}:'.format(quote(col_key)))
             for col_fmt_key, col_fmt_value in col_dic.items():
-                about, _l = add_str(about, '{:<6}{:<7}: {}'.format(' ', _q(col_fmt_key), _q(col_fmt_value)),
-                                     strips=False)
+                about, _l = add_str(about, '{:<6}{:<7}: {}'.format(' ', quote(col_fmt_key), quote(col_fmt_value)),
+                                    strips=False)
 
         about, _l = add_str(about, '')
         about, _l = add_str(about, '{:<14}'.format('Row Formatter:'))
         about, _l = add_str(about, '{:<14}'.format('-' * _l))
 
         for row_key, row_dic in self.row_formatter.items():
-            about, _l = add_str(about, ' ({}, {}):'.format(_q(row_key[0]), _q(row_key[1])))
+            about, _l = add_str(about, ' ({}, {}):'.format(quote(row_key[0]), quote(row_key[1])))
             for row_fmt_key, row_fmt_value in row_dic.items():
-                about, _l = add_str(about, '{:<12}{:<6}: {}'.format(' ', _q(row_fmt_key), _q(row_fmt_value)),
-                                     strips=False)
+                about, _l = add_str(about, '{:<12}{:<6}: {}'.format(' ', quote(row_fmt_key), quote(row_fmt_value)),
+                                    strips=False)
         return about
 
     def __add__(self, other):  # Formatter

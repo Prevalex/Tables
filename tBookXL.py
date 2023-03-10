@@ -7,9 +7,9 @@ import xlrd
 from openpyxl import Workbook, load_workbook
 from openpyxl.cell import WriteOnlyCell
 from openpyxl.utils import get_column_letter
-from alx import add_str, class_name, _q, inspect_info, dbg, get_datetime_stamp, del_if_exist, is_opened
+from alx import add_str, class_name, quote, inspect_info, dbg, get_datetime_stamp, del_if_exist, is_opened
 
-from tLib import xls_ext, xlsx_ext, TableError, read_xlsx_sheet, read_xls_sheet_data, arrange_with_titles
+from tLib import xls_ext, xlsx_ext, TableError, read_xlsx_sheet, read_xls_sheet_data, reorder_dict, get_test_indexes
 from tFormat import Formatter
 from tTable import Table
 from tBook import TableBook
@@ -215,17 +215,6 @@ class TableBookXL:  # TableBookXL
 
         """
 
-        def get_test_indexes(total_rows) -> list:
-            if total_rows < 9:
-                _rows = set(list(range(total_rows)))
-            else:
-                _start = {0, 1, 2}
-                _middle = int(round(total_rows / 2, 0))
-                _middle = {_middle - 1, _middle, _middle + 1}
-                _finish = {total_rows - 1, total_rows - 2, total_rows - 3}
-                _rows = _start | _middle | _finish
-            return list(_rows)
-
         def test_row(data, row_index, formatter):
             key_list = []
             title_list = []
@@ -285,8 +274,8 @@ class TableBookXL:  # TableBookXL
     def _rearrange_(self, titles_list: list[str]) -> None:
         titles_list = list(self._check_title_(title) for title in titles_list)
         self.table_book.reorder_titles(titles_list)
-        self.ft_dic = arrange_with_titles(self.ft_dic, titles_list)
-        self.dst_ws_dic = arrange_with_titles(self.dst_ws_dic, titles_list)
+        self.ft_dic = reorder_dict(self.ft_dic, titles_list)
+        self.dst_ws_dic = reorder_dict(self.dst_ws_dic, titles_list)
 
     def add_sheet(self, title: str, table: Table, formatter=Formatter()) -> None:
         title = self._check_title_(title, inclusion=False)

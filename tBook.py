@@ -5,8 +5,8 @@
 
 
 from tTable import Table
-from alx import add_str, class_name, _q, inspect_info, dbg, get_datetime_stamp, del_if_exist, is_opened
-from tLib import TableError, arrange_with_titles
+from alx import add_str, class_name, quote, inspect_info, dbg, get_datetime_stamp, del_if_exist, is_opened
+from tLib import TableError, reorder_dict
 
 
 class TableBook:  # TableBook
@@ -87,7 +87,7 @@ class TableBook:  # TableBook
 
     def reorder_titles(self, titles_list: list[str]) -> None:  # TableBook
         titles_list = list(self._check_title_(title) for title in titles_list)
-        self.tables_dic = arrange_with_titles(self.tables_dic, titles_list)
+        self.tables_dic = reorder_dict(self.tables_dic, titles_list)
 
     def __len__(self) -> int:  # TableBook
         return len(self.tables_dic)
