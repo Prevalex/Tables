@@ -170,19 +170,20 @@ class TableChunk:
     def __getitem__(self, subscript: int | slice):
         if isinstance(subscript, int):
             i = eval_index(subscript, self.rows, self.selected_rows)
-            return self._get_chunk_row(subscript)
+            #return self._get_chunk_row(subscript)
+            return self._get_chunk_row(i)
         elif isinstance(subscript, slice):
-            slicer = self.selected_rows
-            if slicer is None:
-                slicer = list(range(self.rows))
-            slicer = slicer[subscript]
+            selected_rows = self.selected_rows
+            if selected_rows is None:
+                selected_rows = list(range(self.rows))
+            selected_rows = selected_rows[subscript]
             sliced_chunk = TableChunk(self.array,
                                       select_cols=self.selected_cols,
                                       columns=self.columns,
                                       headers=self.headers,
                                       use_keys=self.use_keys,
                                       filler=self.filler,
-                                      select_rows=slicer
+                                      select_rows=selected_rows
                                       )
             return sliced_chunk
         else:

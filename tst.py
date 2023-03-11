@@ -81,6 +81,10 @@ print(f'\nerc_chunk.get_chunk_headers()=\n{erc_chunk.get_chunk_headers()}')
 for i in range(5):
     print(erc_chunk[i])
 
+erc_slice = erc_chunk[0:0]
+print(erc_slice)
+
+
 
 
 
