@@ -74,8 +74,14 @@ src = read_pydata_from_json_file(r'D:\aWrk\PYTHON\PyCharm\PyCat\Samples\SRC_ERC.
 print(f'test_keys(src)={test_keys(src)}')
 print(f'test_keys(dst)={test_keys(dst)}')
 
-erc_chunk = TableChunk(src)
+erc_chunk = TableChunk(src, select_cols=['vendor', 'gname', 'sprice', 'ddp', 'whs'], columns=10)
 print(f'\nerc_chunk\n{erc_chunk}')
+
+print(f'\nerc_chunk.get_chunk_headers()=\n{erc_chunk.get_chunk_headers()}')
+for i in range(5):
+    print(erc_chunk[i])
+
+
 
 
 
